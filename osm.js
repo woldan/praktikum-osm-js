@@ -21,6 +21,28 @@ osm.svg.view_box = function(data) {
       .attr("viewBox", [min_lon, min_lat, (max_lon - min_lon), (max_lat - min_lat)].join())
 };
 
+osm.feature.init_transformation = function(data, view_selector) {
+  // .. determine OSM XML bounding box ..
+  var bounds = d3.select(data)
+                 .selectAll("osm bounds");
+  var min_lat = bounds.attr("minlat");
+  var min_lon = bounds.attr("minlon");
+  var max_lat = bounds.attr("maxlat");
+  var max_lon = bounds.attr("maxlon");
+
+  // .. determine view size ..
+  var view_width = d3.select(view_selector).attr("width");
+  var view_height  = d3.select(view_selector).attr("height");
+
+  // .. initialize transformation helpers ..
+  osm.current.offset_x = min_lon;
+  osm.current.offset_y = min_lat;
+  osm.current.max_x = view_height;
+  osm.current.max_y = view_width;
+  osm.current.scaling_x = view_width / (max_lon - min_lon);
+  osm.current.scaling_y = view_height / (max_lat - min_lat);
+};
+
 osm.svg.circles = function (group, data, selector, style) {
   d3.select("body")
     .select("svg")
@@ -53,17 +75,23 @@ osm.svg.polylines = function (group, data, selector, style) {
 };
 
 osm.feature.latitude = function (node) {
+  var result = 0;
   if (node.nodeName == "tag") {
-    return d3.select(node.parentNode).attr("lat");
+    result = d3.select(node.parentNode).attr("lat");
+  } else {
+    result = d3.select(node).attr("lat");
   }
-  return d3.select(node).attr("lat");
+  return osm.current.max_y - ((result - osm.current.offset_y) * osm.current.scaling_y);
 }
 
 osm.feature.longitude = function (node) {
+  var result = 0;
   if (node.nodeName == "tag") {
-    return d3.select(node.parentNode).attr("lon");
+    result = d3.select(node.parentNode).attr("lon");
+  } else {
+    result = d3.select(node).attr("lon");
   }
-  return d3.select(node).attr("lon");
+  return (result - osm.current.offset_x) * osm.current.scaling_x;
 };
 
 osm.feature.ways = function (data, selector) {
@@ -82,43 +110,48 @@ osm.feature.way_points = function (data, way) {
         var id = d3.select(this).attr("ref");
         var node = d3.select(data)
                      .selectAll("[cssid=nd_"+id+"]")[0][0];
-        coordinates.push(""+d3.select(node).attr("lon")+","+d3.select(node).attr("lat"));
+        coordinates.push(""+osm.feature.longitude(node)+","+osm.feature.latitude(node));
       })
   return coordinates;
 };
+
+osm.feature.add_css_compliant_ids = function (data) {
+  d3.select(data)
+    .selectAll("node")
+      .each(function(d,i) {
+              d3.select(this).attr("cssid", "nd_"+d3.select(this).attr("id"));
+            });
+}
 
 osm.process = function(data) {
   "use strict";
   osm.current.data = data; //< just to allow for simple interactive tinkering!
 
   // workaround: OSM XML uses ids that do not conform to CSS identifiers:
-  d3.select(data)
-    .selectAll("node")
-      .each(function(d,i) {
-        d3.select(this).attr("cssid", "nd_"+d3.select(this).attr("id"));
-      });
+  osm.feature.add_css_compliant_ids(data);
+  osm.feature.init_transformation(data, "#renderArea");
 
-  osm.svg.view_box(data);
-  osm.svg.circles("nodes",
-                  data,
-                  "osm node",
-                  { radius: 0.00001, fill: "black" });
   osm.svg.circles("bus_stops",
                   data,
                   "osm node tag[k=highway][v=bus_stop]",
-                  { radius: 0.00005, fill: "red" });
+                  { radius: 3, fill: "red" });
   osm.svg.circles("shops",
                   data,
                   "osm node tag[k=shop]",
-                  { radius: 0.00005, fill: "brown" });
+                  { radius: 3, fill: "brown" });
   osm.svg.circles("leisure",
                   data,
                   "osm node tag[k=leisure]",
-                  { radius: 0.00005, fill: "green" });
+                  { radius: 3, fill: "green" });
   osm.svg.circles("power",
                   data,
                   "osm node tag[k=power]",
-                  { radius: 0.00005, fill: "#839496" });
+                  { radius: 2, fill: "#839496" });
+  osm.svg.circles("recycling",
+                  data,
+                  "osm node tag[v=recycling]",
+                  { radius: 2, fill: "#859900" });
+
   osm.svg.polylines("buildings",
                     data,
                     "osm way tag[k=building][v=yes]",
@@ -126,12 +159,12 @@ osm.process = function(data) {
   osm.svg.polylines("streets",
                     data,
                     "osm way tag[k=highway][v=residential],[v=secondary],[v=secondary],[v=tertiary]",
-                    { stroke: "grey", stroke_width: "0.1%" });
+                    { stroke: "grey", stroke_width: 2 });
 
   osm.svg.polylines("ways",
                     data,
                     "osm way tag[k=highway][v=cycleway],[v=footway],[v=track],[v=path],[v=service]",
-                    { stroke: "#b58900", stroke_width: "0.1%" });
+                    { stroke: "#b58900", stroke_width: 0.5 });
 
   var ways = d3.select(osm.current.data).selectAll("osm way[visible=true]")
   var my_way = ways[0][0]
