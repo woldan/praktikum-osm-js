@@ -34,13 +34,18 @@ osm.feature.init_transformation = function(data, view_selector) {
   var view_width = d3.select(view_selector).attr("width");
   var view_height  = d3.select(view_selector).attr("height");
 
+  osm.current.projection = d3.geo.mercator().center(min_lon + ((max_lon - min_lon) / 2),
+                                                    min_lat + ((max_lat - min_lat) / 2));
+
   // .. initialize transformation helpers ..
-  osm.current.offset_x = min_lon;
-  osm.current.offset_y = min_lat;
+  var south_west = osm.current.projection([min_lon, min_lat]);
+  var north_east = osm.current.projection([max_lon, max_lat]);
+  osm.current.offset_x = south_west[0];
+  osm.current.offset_y = south_west[1];
   osm.current.max_x = view_height;
   osm.current.max_y = view_width;
-  osm.current.scaling_x = view_width / (max_lon - min_lon);
-  osm.current.scaling_y = view_height / (max_lat - min_lat);
+  osm.current.scaling_x = view_width / (north_east[0] - south_west[0]);
+  osm.current.scaling_y = view_height / (north_east[1] - south_west[1]);
 };
 
 osm.svg.circles = function (group, data, selector, style) {
@@ -52,8 +57,8 @@ osm.svg.circles = function (group, data, selector, style) {
       .data(d3.select(data).selectAll(selector)[0])
       .enter()
         .append("circle")
-          .attr("cx", osm.feature.longitude)
-          .attr("cy", osm.feature.latitude)
+          .attr("cx", function(d) { return osm.feature.project(d)[0]; })
+          .attr("cy", function(d) { return osm.feature.project(d)[1]; })
           .attr("r", style.radius)
           .attr("fill", style.fill);
 };
@@ -74,17 +79,20 @@ osm.svg.polylines = function (group, data, selector, style) {
                 return osm.feature.way_points(data, d).join(" "); });
 };
 
-osm.feature.latitude = function (node) {
-  var result = 0;
-  if (node.hasOwnProperty("lat")) {
-    result = node.lat;
+osm.feature.project = function (node) {
+  var result = undefined;
+  if (node.hasOwnProperty("lat") && node.hasOwnProperty("lon")) {
+    result = [ node.lon, node.lat ];
   } else if (node.nodeName == "tag") {
-    result = d3.select(node.parentNode).attr("lat");
+    result = [ d3.select(node.parentNode).attr("lon"),  d3.select(node.parentNode).attr("lat") ];
   } else {
-    result = d3.select(node).attr("lat");
+    result = [ d3.select(node).attr("lon"), d3.select(node).attr("lat") ];
   }
-  return osm.current.max_y - ((result - osm.current.offset_y) * osm.current.scaling_y);
-}
+
+  result = osm.current.projection(result);
+  return [ (result[0] - osm.current.offset_x) * osm.current.scaling_x,
+           osm.current.max_y - ((result[1] - osm.current.offset_y) * osm.current.scaling_y) ];
+};
 
 osm.feature.longitude = function (node) {
   var result = 0;
@@ -97,6 +105,19 @@ osm.feature.longitude = function (node) {
   }
   return (result - osm.current.offset_x) * osm.current.scaling_x;
 };
+
+osm.feature.latitude = function (node) {
+  var result = 0;
+  if (node.hasOwnProperty("lat")) {
+    result = node.lat;
+  } else if (node.nodeName == "tag") {
+    result = d3.select(node.parentNode).attr("lat");
+  } else {
+    result = d3.select(node).attr("lat");
+  }
+  return osm.current.max_y - ((result - osm.current.offset_y) * osm.current.scaling_y);
+};
+
 
 osm.feature.ways = function (data, selector) {
   return d3.select(data)
@@ -112,7 +133,7 @@ osm.feature.way_points = function (data, way) {
     .selectAll("nd")
       .each(function (d, i) {
         var node = osm.feature.node_by_ref(d3.select(this));
-        coordinates.push(""+osm.feature.longitude(node)+","+osm.feature.latitude(node));
+        coordinates.push(""+osm.feature.project(node)[0]+","+osm.feature.project(node)[1]);
       })
   return coordinates;
 };

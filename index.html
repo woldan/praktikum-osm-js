@@ -5,13 +5,13 @@
 </head>
 
 <body>
-  <svg id="renderArea" width="500" height="500" style="stroke-width: 0px; background-color: #fdf6e3">
+  <svg id="renderArea" width="1000" height="1000" style="stroke-width: 0px; background-color: #fdf6e3">
   </svg>
 
   <script src="d3/d3.js" charset="utf-8"></script>
   <script src="osm.js" charset="utf-8"></script>
   <script type="text/javascript">
-    d3.xml("dump.xml", osm.process);
+    d3.xml("martinsried.big.osm.xml", osm.process);
   </script>
 </body>
 </html>
