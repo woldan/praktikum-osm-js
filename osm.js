@@ -24,7 +24,8 @@ osm.ui.clicked_feature_handler = function (d) {
        .classed("selected", false);
   d3.select(this)
        .classed("selected", true);
-  osm.ui.show_info_window(d);
+  osm.ui.setup_info_window(d);
+  osm.ui.show_info_window();
 }
 
 osm.ui.info_window = function () {
@@ -40,39 +41,45 @@ osm.ui.info_window = function () {
     info_window = svg_root
                     .select("#ui")
                     .append("g")
-                      .attr("id", "info_window")
-                      .attr("visibility", "hidden");
+                    .attr("id", "info_window")
     info_window.append("rect")
                   .classed("ui overlay", true)
+                  .attr("id", "info_background")
                   .attr("x", window_x)
                   .attr("y", window_y)
                   .attr("width", window_width)
-                  .attr("height", window_height);
+                  .attr("height", 0);
     info_window.append("rect")
                   .classed("ui overlay control", true)
+                  .attr("id", "info_window_toggle_button")
                   .attr("x", window_x)
-                  .attr("y", window_height)
+                  .attr("y", window_y)
                   .attr("width", window_width)
                   .attr("height", button_height)
                   .on("mouseover", osm.ui.hover_init_handler)
                   .on("mouseout", osm.ui.hover_finish_handler)
-                  .on("click", osm.ui.hide_info_window);
+                  .on("click", function(d) {
+                                 var info_background = d3.select("#info_background");
+                                 if (!info_background.empty() && info_background.attr("height") <= 0) {
+                                   osm.ui.show_info_window();
+                                 } else {
+                                   osm.ui.hide_info_window();
+                                 }
+                               });
   }
   return info_window;
 }
 
-osm.ui.show_info_window = function (data) {
+osm.ui.setup_info_window = function (data) {
   var info_window = osm.ui.info_window();
   if (!info_window.empty()) {
+    osm.current.feature_tags = osm.feature.tags(data);
     info_window.selectAll(".display").remove();
-    info_window.attr("visibility", "visible");
     info_window.selectAll(".display")
-                 .data(osm.feature.tags(data))
+                 .data(osm.current.feature_tags)
                  .enter()
                    .append("text")
                      .classed("ui overlay display", true)
-                     .attr("font-family", "sans")
-                     .attr("font-size", "15")
                      .attr("x", 6)
                      .attr("y", function(d, i) {
                                   return 6 + ((i + 1) * 15);
@@ -83,10 +90,42 @@ osm.ui.show_info_window = function (data) {
   }
 }
 
+osm.ui.show_info_window = function () {
+  var info_window = osm.ui.info_window();
+  if (!info_window.empty()) {
+    var list_size = (osm.current.feature_tags.length + 1) * 15 + 6;
+    d3.select("#info_background")
+      .transition()
+        .duration(250)
+        .attr("height", list_size);
+    d3.select("#info_window_toggle_button")
+      .transition()
+        .duration(250)
+        .attr("y", list_size);
+    d3.selectAll("#ui .display")
+      .transition()
+        .delay(250)
+        .duration(50)
+        .attr("visibility", "visible");
+  }
+}
+
 osm.ui.hide_info_window = function () {
   var info_window = osm.ui.info_window();
   if (!info_window.empty()) {
-    info_window.attr("visibility", "hidden");
+    d3.select("#info_background")
+      .transition()
+        .duration(250)
+        .attr("height", 0);
+    d3.select("#info_window_toggle_button")
+      .transition()
+        .duration(250)
+        .attr("y", 0);
+    d3.selectAll("#ui .display")
+      .transition()
+        .delay(0)
+        .duration(50)
+        .attr("visibility", "hidden");
   }
 }
 
@@ -262,7 +301,7 @@ osm.process = function(data) {
 
   osm.svg.polylines("highway street",
                     data,
-                    "osm way tag[k=highway][v=residential],[v=secondary],[v=secondary],[v=tertiary]");
+                    "osm way tag[k=highway][v=unclassified],[v=residential],[v=secondary],[v=secondary],[v=tertiary]");
   osm.svg.polylines("highway way",
                     data,
                     "osm way tag[k=highway][v=cycleway],[v=track],[v=service]");
