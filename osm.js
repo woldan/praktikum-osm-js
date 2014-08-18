@@ -92,7 +92,15 @@ osm.svg.polylines = function (group, data, selector, classes) {
               .classed(group, true)
               .attr("points", function(d, i) {
                                 return osm.feature.way_points(data, d).join(" ");
-                              });
+                              })
+              .on('mouseover', function(d) {
+                                 d3.select(this)
+                                   .classed("hovered", true);
+                               })
+              .on('mouseout', function(d) {
+                                 d3.select(this)
+                                   .classed("hovered", false);
+                               });
 };
 
 osm.feature.project = function (node) {

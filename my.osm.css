@@ -1,6 +1,11 @@
 .building {
   fill: #eee8d5;
   stroke: none;
+  stroke-width: 0;
+}
+.building.hovered {
+  stroke: #93a1a1;
+  stroke-width: 0.25%;
 }
 
 .highway.street {
@@ -8,15 +13,24 @@
   stroke: grey;
   stroke-width: 0.25%;
 }
+.highway.street.hovered {
+  stroke-width: 0.4%;
+}
 .highway.way {
   fill: none;
   stroke: #b58900;
   stroke-width: 0.1%;
 }
+.highway.way.hovered {
+  stroke-width: 0.3%;
+}
 .highway.path {
   fill: none;
   stroke: #b58900;
   stroke-width: 0.05%;
+}
+.highway.path.hovered {
+  stroke-width: 0.25%;
 }
 
 .node {
@@ -26,7 +40,7 @@
   height: 0.25%;
 }
 .node.hovered {
-  stroke-width: 0.2%;
+  stroke-width: 0.25%;
 }
 .node.busstop {
   fill: #dc322f;
