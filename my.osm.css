@@ -1,0 +1,45 @@
+.building {
+  fill: #eee8d5;
+  stroke: none;
+}
+
+.highway.street {
+  fill: none;
+  stroke: grey;
+  stroke-width: 0.25%;
+}
+.highway.way {
+  fill: none;
+  stroke: #b58900;
+  stroke-width: 0.1%;
+}
+.highway.path {
+  fill: none;
+  stroke: #b58900;
+  stroke-width: 0.05%;
+}
+
+.node {
+  fill: black;
+  stroke-width: 0%;
+  width: 0.25%;
+  height: 0.25%;
+}
+.node.hovered {
+  stroke-width: 0.2%;
+}
+.node.busstop {
+  fill: #dc322f;
+}
+.node.shop {
+  fill: #6c71c4;
+}
+.node.leisure {
+  fill: #859900;
+}
+.node.power {
+  fill: #839496;
+}
+.node.recycling {
+  fill: #859900;
+}

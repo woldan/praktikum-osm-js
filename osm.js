@@ -48,7 +48,7 @@ osm.feature.init_transformation = function(data, view_selector) {
   osm.current.scaling_y = view_height / (north_east[1] - south_west[1]);
 };
 
-osm.svg.circles = function (group, data, selector, style) {
+osm.svg.circles = function (group, data, selector) {
   d3.select("body")
     .select("svg")
       .append("g")
@@ -57,13 +57,30 @@ osm.svg.circles = function (group, data, selector, style) {
       .data(d3.select(data).selectAll(selector)[0])
       .enter()
         .append("circle")
+          .classed(group, true)
           .attr("cx", function(d) { return osm.feature.project(d)[0]; })
           .attr("cy", function(d) { return osm.feature.project(d)[1]; })
-          .attr("r", style.radius)
-          .attr("fill", style.fill);
+          .attr("r", "0.3%")
+          .attr("stroke", function (d) {
+                              var fill = d3.select(this).style("fill");
+                              if (fill)
+                                return d3.rgb(fill).darker();
+                              return "black";
+                            })
+          .on('mouseover', function(d) {
+                             d3.select(this)
+                               .classed("hovered", true);
+                           })
+          .on('mouseout', function(d) {
+                             d3.select(this)
+                               .classed("hovered", false);
+                           });
 };
 
-osm.svg.polylines = function (group, data, selector, style) {
+osm.svg.polylines = function (group, data, selector, classes) {
+  classes = classes || [];
+  classes.push(group);
+
   d3.select("body")
     .select("svg")
       .append("g")
@@ -72,11 +89,10 @@ osm.svg.polylines = function (group, data, selector, style) {
           .data(d3.select(data).selectAll(selector)[0])
           .enter()
             .append("polyline")
-              .attr("fill", style.fill || "none")
-              .attr("stroke", style.stroke || "none")
-              .attr("stroke-width", style.stroke_width || 1)
+              .classed(group, true)
               .attr("points", function(d, i) {
-                return osm.feature.way_points(data, d).join(" "); });
+                                return osm.feature.way_points(data, d).join(" ");
+                              });
 };
 
 osm.feature.project = function (node) {
@@ -168,52 +184,41 @@ osm.process = function(data) {
   "use strict";
   osm.current.data = data; //< just to allow for simple interactive tinkering!
 
-  // workaround: OSM XML uses ids that do not conform to CSS identifiers:
-  //osm.feature.add_css_compliant_ids(data);
-
   osm.feature.cache_nodes(data);
   osm.feature.init_transformation(data, "#renderArea");
 
-  osm.svg.polylines("streets",
+  osm.svg.polylines("highway street",
                     data,
-                    "osm way tag[k=highway][v=residential],[v=secondary],[v=secondary],[v=tertiary]",
-                    { stroke: "grey", stroke_width: "0.25%" });
-  osm.svg.polylines("ways",
+                    "osm way tag[k=highway][v=residential],[v=secondary],[v=secondary],[v=tertiary]");
+  osm.svg.polylines("highway way",
                     data,
-                    "osm way tag[k=highway][v=cycleway],[v=track],[v=service]",
-                    { stroke: "#b58900", stroke_width: "0.1%" });
-  osm.svg.polylines("paths",
+                    "osm way tag[k=highway][v=cycleway],[v=track],[v=service]");
+  osm.svg.polylines("highway path",
                     data,
-                    "osm way tag[k=highway][v=footway],[v=path]",
-                    { stroke: "#b58900", stroke_width: "0.033%" });
+                    "osm way tag[k=highway][v=footway],[v=path]");
 
-  osm.svg.polylines("buildings",
+  osm.svg.polylines("building",
                     data,
-                    "osm way tag[k=building][v=yes]",
-                    { fill: "#eee8d5" });
+                    "osm way tag[k=building][v=yes]");
 
-  osm.svg.circles("bus_stops",
+  osm.svg.circles("node busstop",
                   data,
                   "osm node tag[k=highway][v=bus_stop]",
-                  { radius: "0.5%", fill: "red" });
-  osm.svg.circles("shops",
+                  { radius: "0.25%" });
+  osm.svg.circles("node shop",
                   data,
                   "osm node tag[k=shop]",
-                  { radius: "0.5%", fill: "brown" });
-  osm.svg.circles("leisure",
+                  { radius: "0.25%" });
+  osm.svg.circles("node leisure",
                   data,
                   "osm node tag[k=leisure]",
-                  { radius: "0.5%", fill: "green" });
-  osm.svg.circles("power",
+                  { radius: "0.25%" });
+  osm.svg.circles("node power",
                   data,
                   "osm node tag[k=power]",
-                  { radius: "0.25%", fill: "#839496" });
-  osm.svg.circles("recycling",
+                  { radius: "0.2%" });
+  osm.svg.circles("node recycling",
                   data,
                   "osm node tag[v=recycling]",
-                  { radius: "0.25%", fill: "#859900" });
-
-  var ways = d3.select(osm.current.data).selectAll("osm way[visible=true]")
-  var my_way = ways[0][0]
-  var coordinates = osm.feature.way_points(data, my_way);
+                  { radius: "0.2%" });
 }
