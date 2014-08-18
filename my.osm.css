@@ -57,3 +57,23 @@
 .node.recycling {
   fill: #859900;
 }
+.node.restaurant {
+  fill: #268bd2;
+}
+
+.ui.overlay {
+  fill: #073642;
+  fill-opacity: 0.75;
+}
+.ui.overlay.control {
+  fill: #002b36;
+  fill-opacity: 0.8;
+}
+.ui.overlay.display {
+  fill: #fdf6e3;
+  fill-opacity: 1;
+  font-size: 12;
+}
+.ui.overlay.control.hovered {
+  fill-opacity: 0.9;
+}

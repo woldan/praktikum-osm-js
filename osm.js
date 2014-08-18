@@ -4,22 +4,106 @@ var osm = {};
 osm.svg = {};
 // namespace to offer OSM XML feature helpers:
 osm.feature = {};
+// namespace to offer generic UI helpers:
+osm.ui = {};
 // namespace to hold current state:
 osm.current = {}
-osm.current.data = undefined;
 
-/// Sets the SVG 'viewBox' attribute to data's OSM XML bounds.
-osm.svg.view_box = function(data) {
-  var bounds = d3.select(data)
-                 .selectAll("osm bounds");
-  var min_lat = bounds.attr("minlat");
-  var min_lon = bounds.attr("minlon");
-  var max_lat = bounds.attr("maxlat");
-  var max_lon = bounds.attr("maxlon");
-  d3.select("body")
-    .select("svg")
-      .attr("viewBox", [min_lon, min_lat, (max_lon - min_lon), (max_lat - min_lat)].join())
-};
+osm.ui.hover_init_handler = function (d) {
+  d3.select(this)
+       .classed("hovered", true);
+}
+
+osm.ui.hover_finish_handler = function (d) {
+  d3.select(this)
+       .classed("hovered", false);
+}
+
+osm.ui.clicked_feature_handler = function (d) {
+  d3.selectAll(".selected")
+       .classed("selected", false);
+  d3.select(this)
+       .classed("selected", true);
+  osm.ui.show_info_window(d);
+}
+
+osm.ui.info_window = function () {
+  var svg_root = d3.select("body svg");
+  var info_window = svg_root.select("#ui #info_window");
+  if (info_window.empty()) {
+    var window_x = svg_root.attr("x");
+    var window_y = svg_root.attr("y");
+    var window_width = svg_root.attr("width");
+    var window_height = svg_root.attr("height") * 0.33;
+    var button_height = 20;
+
+    info_window = svg_root
+                    .select("#ui")
+                    .append("g")
+                      .attr("id", "info_window")
+                      .attr("visibility", "hidden");
+    info_window.append("rect")
+                  .classed("ui overlay", true)
+                  .attr("x", window_x)
+                  .attr("y", window_y)
+                  .attr("width", window_width)
+                  .attr("height", window_height);
+    info_window.append("rect")
+                  .classed("ui overlay control", true)
+                  .attr("x", window_x)
+                  .attr("y", window_height)
+                  .attr("width", window_width)
+                  .attr("height", button_height)
+                  .on("mouseover", osm.ui.hover_init_handler)
+                  .on("mouseout", osm.ui.hover_finish_handler)
+                  .on("click", osm.ui.hide_info_window);
+  }
+  return info_window;
+}
+
+osm.ui.show_info_window = function (data) {
+  var info_window = osm.ui.info_window();
+  if (!info_window.empty()) {
+    info_window.selectAll(".display").remove();
+    info_window.attr("visibility", "visible");
+    info_window.selectAll(".display")
+                 .data(osm.feature.tags(data))
+                 .enter()
+                   .append("text")
+                     .classed("ui overlay display", true)
+                     .attr("font-family", "sans")
+                     .attr("font-size", "15")
+                     .attr("x", 6)
+                     .attr("y", function(d, i) {
+                                  return 6 + ((i + 1) * 15);
+                                })
+                     .text(function(d, i) {
+                             return "" + d.k.value + ": " + d.v.value;
+                           });
+  }
+}
+
+osm.ui.hide_info_window = function () {
+  var info_window = osm.ui.info_window();
+  if (!info_window.empty()) {
+    info_window.attr("visibility", "hidden");
+  }
+}
+
+osm.feature.tags = function(data) {
+  var selectee = data;
+  if (selectee.nodeName == "tag")
+    selectee = selectee.parentNode;
+  if (!selectee)
+    return;
+  var result = [];
+  var node = d3.select(selectee);
+  var tags = node.selectAll("tag");
+  tags.each(function(d, i) {
+              result.push({ k: this.attributes['k'], v: this.attributes['v'] });
+            });
+  return result;
+}
 
 osm.feature.init_transformation = function(data, view_selector) {
   // .. determine OSM XML bounding box ..
@@ -49,8 +133,7 @@ osm.feature.init_transformation = function(data, view_selector) {
 };
 
 osm.svg.circles = function (group, data, selector) {
-  d3.select("body")
-    .select("svg")
+  d3.select("body svg #features")
       .append("g")
         .attr("id", group)
     .selectAll("circle")
@@ -67,22 +150,17 @@ osm.svg.circles = function (group, data, selector) {
                                 return d3.rgb(fill).darker();
                               return "black";
                             })
-          .on('mouseover', function(d) {
-                             d3.select(this)
-                               .classed("hovered", true);
-                           })
-          .on('mouseout', function(d) {
-                             d3.select(this)
-                               .classed("hovered", false);
-                           });
+          .on('mouseover', osm.ui.hover_init_handler)
+          .on('mouseout', osm.ui.hover_finish_handler)
+          .on('click', osm.ui.clicked_feature_handler);
 };
+
 
 osm.svg.polylines = function (group, data, selector, classes) {
   classes = classes || [];
   classes.push(group);
 
-  d3.select("body")
-    .select("svg")
+  d3.select("body svg #features")
       .append("g")
         .attr("id", group)
         .selectAll("polyline")
@@ -93,14 +171,9 @@ osm.svg.polylines = function (group, data, selector, classes) {
               .attr("points", function(d, i) {
                                 return osm.feature.way_points(data, d).join(" ");
                               })
-              .on('mouseover', function(d) {
-                                 d3.select(this)
-                                   .classed("hovered", true);
-                               })
-              .on('mouseout', function(d) {
-                                 d3.select(this)
-                                   .classed("hovered", false);
-                               });
+              .on('mouseover', osm.ui.hover_init_handler)
+              .on('mouseout', osm.ui.hover_finish_handler)
+              .on('click', osm.ui.clicked_feature_handler);
 };
 
 osm.feature.project = function (node) {
@@ -180,14 +253,6 @@ osm.feature.cache_nodes = function (data) {
             });
 }
 
-osm.feature.add_css_compliant_ids = function (data) {
-  d3.select(data)
-    .selectAll("node")
-      .each(function(d,i) {
-              d3.select(this).attr("cssid", "nd_"+d3.select(this).attr("id"));
-            });
-}
-
 osm.process = function(data) {
   "use strict";
   osm.current.data = data; //< just to allow for simple interactive tinkering!
@@ -225,6 +290,10 @@ osm.process = function(data) {
                   data,
                   "osm node tag[k=power]",
                   { radius: "0.2%" });
+  osm.svg.circles("node restaurant",
+                  data,
+                  "osm node tag[k=amenity][v=restaurant]",
+                  { radius: "0.25%" });
   osm.svg.circles("node recycling",
                   data,
                   "osm node tag[v=recycling]",
