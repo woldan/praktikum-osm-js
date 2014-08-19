@@ -77,6 +77,11 @@ osm.data = function() {
     return this;
   }
 
+  /// Getter for the bounding box in the OSM XML data.
+  exports.bounds = function(selector) {
+    return d3.select(data).selectAll("osm bounds");
+  }
+
   /// Getter for specific nodes in the OSM XML data.
   exports.nodes = function(selector) {
     return internal.select("osm node " + selector);
