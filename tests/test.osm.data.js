@@ -19,6 +19,18 @@ describe("OSM XML accessor API osm.data", function() {
       expect(testee.source()).toBe(undefined);
     });
 
+    it("yields an empty d3 selection for any selector on nodes", function() {
+      expect(d3.select(testee.nodes("")).empty()).toBe(true);
+      expect(d3.select(testee.nodes("tag")).empty()).toBe(true);
+      expect(d3.select(testee.nodes("tag [k=highway]")).empty()).toBe(true);
+    });
+
+    it("yields an empty d3 selection for any selector on ways", function() {
+      expect(d3.select(testee.ways("")).empty()).toBe(true);
+      expect(d3.select(testee.ways("tag")).empty()).toBe(true);
+      expect(d3.select(testee.ways("tag [k=highway]")).empty()).toBe(true);
+    });
+
     describe("when setting node caching to false", function() {
       beforeEach(function() {
         testee.caching(false);
@@ -33,7 +45,7 @@ describe("OSM XML accessor API osm.data", function() {
       beforeEach(function() {
         testee.source('foo.osm');
       });
-    
+
       it("has source foo.osm defined after setting source to foo.osm", function() {
         expect(testee.source()).toBe('foo.osm');
       });
@@ -124,6 +136,21 @@ describe("OSM XML accessor API osm.data", function() {
         expect(loaded_spy.calls.argsFor(0)).not.toBeNull();
         done();
       });
+
+      it("yields a non-empty d3 selection for existing selectors on nodes", function(done) {
+        expect(d3.select(testee.nodes("")).empty()).toBe(false);
+        expect(d3.select(testee.nodes("tag")).empty()).toBe(false);
+        expect(d3.select(testee.nodes("tag [k=highway]")).empty()).toBe(false);
+        done();
+      });
+
+      it("yields a non-empty d3 selection for existing selectors on ways", function(done) {
+        expect(d3.select(testee.ways("")).empty()).toBe(false);
+        expect(d3.select(testee.ways("tag")).empty()).toBe(false);
+        expect(d3.select(testee.ways("tag [k=highway]")).empty()).toBe(false);
+        done();
+      });
+
     });
 
   });

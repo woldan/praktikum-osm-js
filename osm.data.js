@@ -18,7 +18,7 @@ osm.data = function() {
   /// private functions:
   internal.select = function(selector) {
     if (!data) {
-      return [undefined];
+      return undefined;
     }
     return d3.select(data)
              .selectAll(selector)[0];
