@@ -3,6 +3,20 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" type="text/css" href="my.osm.css"/>
+
+  <link rel="shortcut icon" type="image/png" href="jasmine/lib/jasmine-2.0.1/jasmine_favicon.png">
+  <link rel="stylesheet" type="text/css" href="jasmine/lib/jasmine-2.0.1/jasmine.css"> 
+  
+  <script type="text/javascript" src="jasmine/lib/jasmine-2.0.1/jasmine.js"></script>
+  <script type="text/javascript" src="jasmine/lib/jasmine-2.0.1/jasmine-html.js"></script>
+  <script type="text/javascript" src="jasmine/lib/jasmine-2.0.1/boot.js"></script>
+
+  <script src="d3/d3.js" charset="utf-8"></script>
+
+  <script src="osm.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    d3.xml("martinsried.big.osm.xml", osm.process);
+  </script>
 </head>
 
 <body>
@@ -11,10 +25,5 @@
     <g id="ui" />
   </svg>
 
-  <script src="d3/d3.js" charset="utf-8"></script>
-  <script src="osm.js" charset="utf-8"></script>
-  <script type="text/javascript">
-    d3.xml("martinsried.big.osm.xml", osm.process);
-  </script>
 </body>
 </html>
