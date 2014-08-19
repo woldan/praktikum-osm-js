@@ -59,16 +59,6 @@ osm.data = function() {
     }
   };
 
-  /// Getter/setter for the node caching option.
-  exports.caching = function(_enable) {
-    if (!arguments.length) {
-      return enable_node_cache;
-    } else {
-      enable_node_cache = _enable;
-      return this;
-    }
-  };
-
   /// Loads the set document.
   exports.load = function() {
     d3.xml(osm_xml_source,
@@ -94,23 +84,19 @@ osm.data = function() {
 
   /// Getter for a node by its referencial id.
   exports.node_by_reference = function(id) {
-    if (enable_node_cache) {
-      return node_cache[id];
-    } else {
-      // awful and very expensive workaround to OSM XML id's not being legal CSS ids:
-      if (!id)
-        return undefined;
-      var result = undefined;
-      var nodes = d3.select(data)
-                    .selectAll("osm node")
-                    .each(function(d, i) {
-                      var node = d3.select(this);
-                      if (node.attr("id") == id) {
-                        result = { lat: node.attr("lat"), lon: node.attr("lon") };
-                      }
-                    });
-      return result;
-    }
+    // awful and very expensive workaround to OSM XML id's not being legal CSS ids:
+    if (!id)
+      return undefined;
+    var result = undefined;
+    var nodes = d3.select(data)
+                  .selectAll("osm node")
+                  .each(function(d, i) {
+                    var node = d3.select(this);
+                    if (node.attr("id") == id) {
+                      result = { lat: node.attr("lat"), lon: node.attr("lon") };
+                    }
+                  });
+    return result;
   }
 
   d3.rebind(exports, dispatch, 'on');
