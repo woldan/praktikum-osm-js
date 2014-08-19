@@ -10,14 +10,11 @@ osm.svg = function() {
   var offset_y = undefined;
   var max_x = undefined;
   var max_y = undefined;
-  var projection = undefined;
   var node_size = "0.3%";
   var view = undefined;
   var view_width = undefined;
   var view_height = undefined;
-  var dispatch = d3.dispatch("loaded", "load_failed",
-                             "node_hover_started", "node_hover_ended", "node_clicked",
-                             "way_hover_started", "way_hover_ended", "way_clicked");
+  var dispatch = d3.dispatch("loaded", "load_failed");
 
   /// module scopes:
   var internal = {};
@@ -33,16 +30,12 @@ osm.svg = function() {
     var max_lon = bounds.attr("maxlon");
 
     // .. determine view size ..
-    var view_width = d3.select("body svg").attr("width");
-    var view_height  = d3.select("body svg").attr("height");
-
-    projection = d3.geo.mercator()
-                       .center(min_lon + ((max_lon - min_lon) / 2),
-                               min_lat + ((max_lat - min_lat) / 2));
+    var view_width = d3.select(view).attr("width");
+    var view_height  = d3.select(view).attr("height");
 
     // .. initialize transformation helpers ..
-    var south_west = projection([min_lon, min_lat]);
-    var north_east = projection([max_lon, max_lat]);
+    var south_west = [min_lon, min_lat];
+    var north_east = [max_lon, max_lat];
     offset_x = south_west[0];
     offset_y = south_west[1];
     max_x = view_height;
@@ -61,7 +54,6 @@ osm.svg = function() {
       result = [ d3.select(node).attr("lon"), d3.select(node).attr("lat") ];
     }
 
-    result = projection(result);
     return [ (result[0] - offset_x) * scaling_x,
              max_y - ((result[1] - offset_y) * scaling_y) ];
   };
@@ -99,7 +91,7 @@ osm.svg = function() {
     if (!arguments.length) {
       return view;
     } else {
-      view = d3.select(_view_selector);
+      view = _view_selector;
       return this;
     }
   };
@@ -114,7 +106,8 @@ osm.svg = function() {
   };
 
   exports.draw_nodes = function(group, selector) {
-    d3.select("body svg #features")
+    d3.select(view)
+      .select("#features")
         .append("g")
           .attr("id", group)
       .selectAll("circle")
@@ -138,20 +131,7 @@ osm.svg = function() {
   };
 
   exports.draw_ways = function(group, selector) {
-    d3.select("body svg #features")
-      .append("g")
-        .attr("id", group)
-        .selectAll("polyline")
-           .data(data.ways(selector))
-           .enter()
-             .append("polyline")
-               .classed(group, true)
-               .attr("points", function(d, i) {
-                 return internal.way_points(d).join(" ");
-               })
-               .on('mousein', dispatch.way_hover_started)
-               .on('mouseout', dispatch.way_hover_ended)
-               .on('click', dispatch.way_clicked);
+    //TODO..
     return this;
   };
 

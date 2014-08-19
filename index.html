@@ -4,9 +4,6 @@
   <meta charset="utf-8">
   <link rel="stylesheet" type="text/css" href="my.osm.css"/>
 
-  <link rel="shortcut icon" type="image/png" href="jasmine/lib/jasmine-2.0.1/jasmine_favicon.png">
-  <link rel="stylesheet" type="text/css" href="jasmine/lib/jasmine-2.0.1/jasmine.css">
-
   <script src="d3/d3.js" charset="utf-8"></script>
 
   <script src="osm.data.js" charset="utf-8"></script>
@@ -17,20 +14,7 @@
 
     function render_features() {
       svg.draw_nodes("node shop",
-                     "tag[k=shop]")
-         .draw_nodes("node busstop",
-                     "tag[k=highway][v=bus_stop]")
-         .draw_nodes("node leisure",
-                     "tag[k=leisure]")
-         .draw_nodes("node power",
-                     "tag[k=power]")
-         .draw_nodes("node restaurant",
-                     "tag[k=amenity][v=restaurant]")
-         .draw_nodes("node recycling",
-                     "tag[v=recycling]");
-
-      svg.draw_ways("building",
-                    "tag[k=building][v=yes]");
+                     "tag[k=shop]");
     }
 
     svg.view("#renderArea");
