@@ -87,6 +87,27 @@ osm.data = function() {
     return internal.select("osm way " + selector);
   }
 
+  /// Getter for a node by its referencial id.
+  exports.node_by_reference = function(id) {
+    if (enable_node_cache) {
+      return node_cache[id];
+    } else {
+      // awful and very expensive workaround to OSM XML id's not being legal CSS ids:
+      if (!id)
+        return undefined;
+      var result = undefined;
+      var nodes = d3.select(data)
+                    .selectAll("osm node")
+                    .each(function(d, i) {
+                      var node = d3.select(this);
+                      if (node.attr("id") == id) {
+                        result = { lat: node.attr("lat"), lon: node.attr("lon") };
+                      }
+                    });
+      return result;
+    }
+  }
+
   d3.rebind(exports, dispatch, 'on');
   return exports;
 };

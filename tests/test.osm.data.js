@@ -82,7 +82,7 @@ describe("OSM XML accessor API osm.data", function() {
 
   });
 
-  describe("A OSM XML accessor API set up with data from Martinsried", function() {
+  describe("A caching OSM XML accessor API set up with data from Martinsried", function() {
     var testee;
 
     beforeEach(function() {
@@ -148,6 +148,69 @@ describe("OSM XML accessor API osm.data", function() {
         expect(d3.select(testee.ways("")).empty()).toBe(false);
         expect(d3.select(testee.ways("tag")).empty()).toBe(false);
         expect(d3.select(testee.ways("tag [k=highway]")).empty()).toBe(false);
+        done();
+      });
+
+      it("yields undefined when looking up nodes for some non-existing node reference", function(done) {
+        expect(testee.node_by_reference("")).toBe(undefined);
+        expect(testee.node_by_reference("foo")).toBe(undefined);
+        expect(testee.node_by_reference("236")).toBe(undefined);
+        done();
+      });
+
+      it("yields lat: 48.1066712 and lon: 11.4498138 when looking up node reference 96929019", function(done) {
+        expect(testee.node_by_reference("96929019")).toEqual({ lat: '48.1066712', lon: '11.4498138' });
+        done();
+      });
+
+    });
+
+  });
+
+  describe("A non-caching OSM XML accessor API set up with data from Martinsried", function() {
+    var testee;
+
+    beforeEach(function() {
+      testee = osm.data()
+                  .caching(false)
+                  .source('martinsried.osm');
+    });
+
+    afterEach(function() {
+      testee = undefined;
+    });
+
+    it("has node caching disabled", function() {
+      expect(testee.caching()).toBe(false);
+    });
+
+    describe("when registering a callback on loaded and calling load", function() {
+      var loaded_spy = undefined;
+      var load_failed_spy = undefined;
+
+      beforeEach(function(done) {
+        loaded_spy = jasmine.createSpy("on_loaded");
+        load_failed_spy = jasmine.createSpy("on_loaded");
+        testee.on("loaded", function() {
+                              loaded_spy();
+                              done();
+                            })
+              .on("load_failed", function() {
+                                   load_failed_spy();
+                                   done();
+                                 })
+              .load();
+      });
+
+      it("yields undefined when looking up nodes for some non-existing node reference", function(done) {
+        expect(testee.node_by_reference("")).toBe(undefined);
+        expect(testee.node_by_reference("foo")).toBe(undefined);
+        expect(testee.node_by_reference("236")).toBe(undefined);
+        done();
+      });
+
+      it("yields lat: 48.1066712 and lon: 11.4498138 when looking up node reference 96929019", function(done) {
+        expect(testee.node_by_reference("96929019")).toEqual({ lat: '48.1066712', lon: '11.4498138' });
         done();
       });
 
