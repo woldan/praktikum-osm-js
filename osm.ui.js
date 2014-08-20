@@ -6,6 +6,7 @@ osm = osm || {};
 osm.ui = function() {
   /// module variables:
   var data = undefined;
+  var feature_tags = [];
   var dispatch = d3.dispatch();
 
   /// module scopes:
@@ -13,6 +14,21 @@ osm.ui = function() {
   var exports = {};
 
   /// private functions:
+  internal.tags = function(data) {
+    var selectee = data;
+    if (selectee.nodeName == "tag")
+      selectee = selectee.parentNode;
+    if (!selectee)
+      return;
+    var result = [];
+    var node = d3.select(selectee);
+    var tags = node.selectAll("tag");
+    tags.each(function(d, i) {
+                result.push({ k: this.attributes['k'], v: this.attributes['v'] });
+              });
+    return result;
+  }
+
   internal.info_window = function() {
     var svg_root = d3.select("body svg");
     var info_window = svg_root.select("#ui #info_window");
@@ -58,10 +74,10 @@ osm.ui = function() {
   internal.setup_info_window = function(data) {
     var info_window = internal.info_window();
     if (!info_window.empty()) {
-      osm.current.feature_tags = internal.tags(data);
+      feature_tags = internal.tags(data);
       info_window.selectAll(".display").remove();
       info_window.selectAll(".display")
-                  .data(osm.current.feature_tags)
+                  .data(feature_tags)
                   .enter()
                     .append("text")
                       .classed("ui overlay display", true)
@@ -76,9 +92,9 @@ osm.ui = function() {
   }
 
   internal.show_info_window = function () {
-    var info_window = osm.ui.info_window();
+    var info_window = internal.info_window();
     if (!info_window.empty()) {
-      var list_size = (osm.current.feature_tags.length + 1) * 15 + 6;
+      var list_size = (feature_tags.length + 1) * 15 + 6;
       d3.select("#info_background")
         .transition()
           .duration(250)

@@ -131,7 +131,7 @@ osm.svg = function() {
                                   return d3.rgb(fill).darker();
                                 return "black";
                               })
-            .on('mousein', dispatch.node_hover_started)
+            .on('mouseover', dispatch.node_hover_started)
             .on('mouseout', dispatch.node_hover_ended)
             .on('click', dispatch.node_clicked);
     return this;
@@ -149,7 +149,7 @@ osm.svg = function() {
                .attr("points", function(d, i) {
                  return internal.way_points(d).join(" ");
                })
-               .on('mousein', dispatch.way_hover_started)
+               .on('mouseover', dispatch.way_hover_started)
                .on('mouseout', dispatch.way_hover_ended)
                .on('click', dispatch.way_clicked);
     return this;

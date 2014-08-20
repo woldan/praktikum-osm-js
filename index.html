@@ -13,9 +13,13 @@
   <script src="osm.svg.js" charset="utf-8"></script>
   <script src="osm.ui.js" charset="utf-8"></script>
   <script type="text/javascript">
+    var ui = osm.ui();
     var svg = osm.svg();
 
     function render_features() {
+      svg.on("node_hover_started", ui.hover_started_handler)
+         .on("node_hover_ended", ui.hover_ended_handler)
+         .on("node_clicked", ui.clicked_feature_handler);
       svg.draw_nodes("node shop",
                      "tag[k=shop]")
          .draw_nodes("node busstop",
