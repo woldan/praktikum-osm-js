@@ -57,14 +57,14 @@ osm.ui = function() {
                     .attr("y", window_y)
                     .attr("width", window_width)
                     .attr("height", button_height)
-                    .on("mouseover", osm.ui.hover_init_handler)
-                    .on("mouseout", osm.ui.hover_finish_handler)
+                    .on("mouseover", internal.hover_init_handler)
+                    .on("mouseout", internal.hover_finish_handler)
                     .on("click", function(d) {
                                   var info_background = d3.select("#info_background");
                                   if (!info_background.empty() && info_background.attr("height") <= 0) {
-                                    osm.ui.show_info_window();
+                                    internal.show_info_window();
                                   } else {
-                                    osm.ui.hide_info_window();
+                                    internal.hide_info_window();
                                   }
                                 });
     }
@@ -112,7 +112,7 @@ osm.ui = function() {
   }
 
   internal.hide_info_window = function () {
-    var info_window = osm.ui.info_window();
+    var info_window = internal.info_window();
     if (!info_window.empty()) {
       d3.select("#info_background")
         .transition()
