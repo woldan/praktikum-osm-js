@@ -20,6 +20,18 @@
       svg.on("node_hover_started", ui.hover_started_handler)
          .on("node_hover_ended", ui.hover_ended_handler)
          .on("node_clicked", ui.clicked_feature_handler);
+      svg.on("way_hover_started", ui.hover_started_handler)
+         .on("way_hover_ended", ui.hover_ended_handler)
+         .on("way_clicked", ui.clicked_feature_handler);
+      svg.draw_ways("building",
+                    "tag[k=building][v=yes]");
+      svg.draw_ways("highway street",
+                    "tag[k=highway][v=unclassified],[v=residential],[v=secondary],[v=secondary],[v=tertiary]");
+      svg.draw_ways("highway way",
+                    "tag[k=highway][v=cycleway],[v=track],[v=service]");
+      svg.draw_ways("highway path",
+                    "tag[k=highway][v=footway],[v=path]");
+ 
       svg.draw_nodes("node shop",
                      "tag[k=shop]")
          .draw_nodes("node busstop",
@@ -32,9 +44,6 @@
                      "tag[k=amenity][v=restaurant]")
          .draw_nodes("node recycling",
                      "tag[v=recycling]");
-
-      svg.draw_ways("building",
-                    "tag[k=building][v=yes]");
     }
 
     svg.view("#renderArea");
