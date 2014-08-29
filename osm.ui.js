@@ -20,11 +20,16 @@ osm.ui = function() {
       selectee = selectee.parentNode;
     if (!selectee)
       return;
-    var result = [];
+    var result = {};
     var node = d3.select(selectee);
     var tags = node.selectAll("tag");
     tags.each(function(d, i) {
-                result.push({ k: this.attributes['k'], v: this.attributes['v'] });
+                var key = this.attributes['k'].value;
+                var group = result[key];
+                if (!group) {
+                  result[key] = [];
+                }
+                result[key].push(this.attributes['v'].value);
               });
     return result;
   }
@@ -72,6 +77,42 @@ osm.ui = function() {
   }
 
   internal.setup_info_window = function(data) {
+    var info_window = d3.select("#details-pane #accordion");
+    info_window.selectAll(".panel").remove();
+    var feature_tags = internal.tags(data);
+    for (var group in feature_tags) {
+      var group_panel = info_window.append("div")
+                                   .classed("panel panel-default", true);
+      var group_id = "tag-group" + group;
+      group_panel.append("div")
+                 .classed("panel-heading", true)
+                   .append("h4")
+                   .classed("panel-title", true)
+                     .append("a")
+                       .classed("panel-title", true)
+                       .attr("data-toggle", "collapse")
+                       .attr("data-parent", "#accordion")
+                       .attr("href", "#"+group_id)
+                       .text(group);
+      var group_body = group_panel.append("div")
+                                  .classed("panel-collapse collapse in", true)
+                                  .attr("id", group_id)
+                                  .append("div")
+                                    .classed("panel-body input-group", true);
+      var group_tags = feature_tags[group];
+      group_tags.forEach(function(element, index, array) {
+        group_body.append("input")
+                    .classed("form-control", true)
+                    .attr("type", "text")
+                    .attr("readonly", "true")
+                    .text(element);
+      });
+    }
+
+    $("#details-pane").collapse('show');
+  }
+
+  internal.setup_info_window_svg = function(data) {
     var info_window = internal.info_window();
     if (!info_window.empty()) {
       feature_tags = internal.tags(data);
@@ -146,7 +187,7 @@ osm.ui = function() {
     d3.select(this)
         .classed("selected", true);
     internal.setup_info_window(d);
-    internal.show_info_window();
+    //internal.show_info_window();
   };
 
   d3.rebind(exports, dispatch, 'on');
