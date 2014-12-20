@@ -97,15 +97,24 @@ osm.ui = function() {
       var group_body = group_panel.append("div")
                                   .classed("panel-collapse collapse in", true)
                                   .attr("id", group_id)
-                                  .append("div")
-                                    .classed("panel-body input-group", true);
+                                  .append("table")
+                                    .classed("table", true);
+      var group_header = group_body.append("thead")
+                                     .append("tr");
+      group_header.append("th")
+                    .text("Key");
+      group_header.append("th")
+                    .text("Value");
+      group_header.append("th")
+                    .text("Documentation");
+      var group_body_content = group_body.append("tbody");
       var group_tags = feature_tags[group];
       group_tags.forEach(function(element, index, array) {
-        group_body.append("input")
-                    .classed("form-control", true)
-                    .attr("type", "text")
-                    .attr("readonly", "true")
-                    .text(element);
+        var line = group_body_content.append("tr");
+        line.append("td")
+              .text(group);
+        line.append("td")
+              .text(element);
       });
     }
 
