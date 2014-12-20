@@ -1,3 +1,9 @@
 [submodule "d3"]
 	path = d3
 	url = https://github.com/mbostock/d3
+[submodule "bootstrap"]
+	path = bootstrap
+	url = https://github.com/twbs/bootstrap.git
+[submodule "jquery"]
+	path = jquery
+	url = https://github.com/jquery/jquery.git
